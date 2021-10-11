@@ -34,7 +34,7 @@ const bcrypt = require('bcryptjs')
    const hash = bcrypt.hashSync(password, 8)
    const user = {username, password: hash}
    const result = await User.add(user)
-  res.status(200).json({username})
+  res.status(200).json(result)
 
  })
 
@@ -58,12 +58,11 @@ const bcrypt = require('bcryptjs')
  router.post('/login', checkUsernameExists, async(req, res, next)=>{
   try {
     const { username, password } = req.body
-    const user = await User.findBy(username)
-    if (user && bcrypt.compareSync(password, user.password)) {
-      req.session.user = user
-      res.status(200).json({ message: `welcome back ${user.username}` })
+    if (bcrypt.compareSync(password, req.user.password)) {
+      req.session.user = req.user
+      res.status(200).json({ message: `welcome ${req.user.username}` })
     } else {
-      next({ status: 401, message: 'invalid credentials!!' })
+      next({ status: 401, message: 'invalid credentials' })
     }
   } catch (err) {
     next(err)
@@ -80,7 +79,7 @@ const bcrypt = require('bcryptjs')
       } else {
         // set a cookie in the past
         res.json({
-          message: `goodbye, nice having you!`
+          message: `logged out`
         })
       }
     })
