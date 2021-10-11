@@ -29,12 +29,12 @@ const bcrypt = require('bcryptjs')
   }
  */
 
- router.post('/register', checkUsernameFree, async(req, res, next)=>{
+ router.post('/register', checkUsernameFree, checkPasswordLength, async(req, res, next)=>{
    const {username, user_id, password } = req.body
    const hash = bcrypt.hashSync(password, 8)
    const user = {username, password: hash}
    const result = await User.add(user)
-  res.status(200).json({user_id, username})
+  res.status(200).json({username})
 
  })
 
@@ -55,10 +55,10 @@ const bcrypt = require('bcryptjs')
   }
  */
 
- router.post('/login', async(req, res, next)=>{
+ router.post('/login', checkUsernameExists, async(req, res, next)=>{
   try {
     const { username, password } = req.body
-    const user = await User.findBy({ username })
+    const user = await User.findBy(username)
     if (user && bcrypt.compareSync(password, user.password)) {
       req.session.user = user
       res.status(200).json({ message: `welcome back ${user.username}` })
